@@ -25,7 +25,7 @@ func proxyHandler(ctx *fasthttp.RequestCtx) {
 
 	// 代理请求
 	client := &fasthttp.Client{}
-	url := path
+	ctx.Request.SetRequestURI(path) // ✅ 直接使用 path
 	ctx.Request.Header.Del("Host")
 
 	// 移除隐私相关请求头
@@ -44,7 +44,7 @@ func proxyHandler(ctx *fasthttp.RequestCtx) {
 
 	// 复制响应
 	ctx.SetStatusCode(resp.StatusCode())
-	ctx.SetBodyRaw(resp.Body())
+	ctx.SetBody(resp.Body()) // ✅ 正确的方法
 
 	// 移除隐私相关响应头
 	for _, h := range privacyHeaders {
@@ -59,7 +59,7 @@ func proxyHandler(ctx *fasthttp.RequestCtx) {
 
 func main() {
 	port := ":3000"
-	fmt.Println("Server is running on port" + port)
+	fmt.Println("Server is running on port " + port)
 	fmt.Println("Example usage: http://localhost:3000/https://api.example.com/path")
 	if err := fasthttp.ListenAndServe(port, proxyHandler); err != nil {
 		panic(err)
